@@ -202,8 +202,7 @@ class SimpleHttp
     elsif @use_rtl
       rtl = RTL8196C.new("")
       if @uri[:scheme] == "https"
-#        response_text = rtl.https(@uri[:address], @uri[:ip], @uri[:port], request_header)
-        response_text = rtl.https("localhost", @uri[:ip], @uri[:port], request_header)
+        response_text = rtl.https(@uri[:address], @uri[:ip], @uri[:port], request_header)
        else
         response_text = rtl.http(@uri[:ip], @uri[:port], request_header)
        end
