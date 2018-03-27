@@ -4,7 +4,8 @@ class SimpleHttp
   HTTP_VERSION = "HTTP/1.0"
   DEFAULT_ACCEPT = "*/*"
   SEP = "\r\n"
-  BUF_SIZE = ENV['BUF_SIZE'] || 4096
+#  BUF_SIZE = ENV['BUF_SIZE'] || 4096
+  BUF_SIZE = 4096
   def unix_socket_class_exist?
       c = Object.const_get("UNIXSocket")
       c.is_a?(Class)
@@ -26,6 +27,13 @@ class SimpleHttp
       return false
   end
 
+  def rtl_module_exist?
+      c = Object.const_get("RTL8196C")
+      c.is_a?(Module)
+  rescue
+      return false
+  end
+
   def initialize(scheme, address, port = nil)
 
     @uri = {}
@@ -38,6 +46,7 @@ class SimpleHttp
 
     @use_socket = false
     @use_uv = false
+    @use_rtl = false
 
     if socket_class_exist?
       @use_socket = true
@@ -45,6 +54,10 @@ class SimpleHttp
 
     if uv_module_exist?
       @use_uv = true
+    end
+    
+    if rtl_module_exist?
+      @use_rtl = true
     end
     
     if @use_socket
@@ -58,6 +71,26 @@ class SimpleHttp
       end
       UV::run()
       @uri[:ip] = ip
+    elsif @use_rtl
+      i = 0
+      dot = 0
+      while i < address.length do
+        if address[i] == '.' then
+          dot = dot + 1
+        elsif address[i] < '0' || address[i] > '9' then
+          break
+        end
+        i = i + 1
+      end
+
+      if i = address.length && dot == 3 then
+        num = address.split('.')
+        @uri[:ip] = (num[0].to_i << 24) | (num[1].to_i << 16) | (num[2].to_i << 8) | num[3].to_i
+      else
+# dns lookup
+        rtl = RTL8196C.new("")
+        @uri[:ip] = rtl.lookup(address)
+      end
     else
       raise "Not found Socket Class or UV Module"
     end
@@ -166,6 +199,14 @@ class SimpleHttp
         end
       end
       UV::run()
+    elsif @use_rtl
+      rtl = RTL8196C.new("")
+      if @uri[:scheme] == "https"
+#        response_text = rtl.https(@uri[:address], @uri[:ip], @uri[:port], request_header)
+        response_text = rtl.https("localhost", @uri[:ip], @uri[:port], request_header)
+       else
+        response_text = rtl.http(@uri[:ip], @uri[:port], request_header)
+       end
     else
       raise "Not found Socket Class or UV Module"
     end
@@ -176,7 +217,8 @@ class SimpleHttp
     req = {}  unless req
     str = ""
     body   = ""
-    str << sprintf("%s %s %s", method, @uri[:path], HTTP_VERSION) + SEP
+#    str << sprintf("%s %s %s", method, @uri[:path], HTTP_VERSION) + SEP
+    str <<  method + " " +  @uri[:path] + " " +  HTTP_VERSION + SEP
     header = {}
     req.each do |key,value|
       if ! header[key.capitalize].nil?
@@ -200,7 +242,8 @@ class SimpleHttp
         header["Content-Length"] = (body || '').length
     end
     header.keys.sort.each do |key|
-      str << sprintf("%s: %s", key, header[key]) + SEP
+#      str << sprintf("%s: %s", key, header[key]) + SEP
+      str << key + ": " +  header[key] + SEP
     end
     str + SEP + body
   end
