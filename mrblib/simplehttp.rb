@@ -88,7 +88,7 @@ class SimpleHttp
         @uri[:ip] = (num[0].to_i << 24) | (num[1].to_i << 16) | (num[2].to_i << 8) | num[3].to_i
       else
 # dns lookup
-        rtl = RTL8196C.new("")
+        rtl = RTL8196C.new(RTL8196C::RTL8196C_GENERIC)
         @uri[:ip] = rtl.lookup(address)
       end
     else
@@ -201,7 +201,7 @@ class SimpleHttp
       UV::run()
     elsif @use_rtl
       if @uri[:ip] != 0
-        rtl = RTL8196C.new("")
+        rtl = RTL8196C.new(RTL8196C::RTL8196C_GENERIC)
         if @uri[:scheme] == "https"
           response_text = rtl.https(@uri[:address], @uri[:ip], @uri[:port], request_header)
         else
