@@ -27,8 +27,8 @@ class SimpleHttp
       return false
   end
 
-  def rtl_module_exist?
-      c = Object.const_get("RTL8196C")
+  def yabm_module_exist?
+      c = Object.const_get("YABM")
       c.is_a?(Module)
   rescue
       return false
@@ -46,7 +46,7 @@ class SimpleHttp
 
     @use_socket = false
     @use_uv = false
-    @use_rtl = false
+    @use_yabm = false
 
     if socket_class_exist?
       @use_socket = true
@@ -56,8 +56,8 @@ class SimpleHttp
       @use_uv = true
     end
     
-    if rtl_module_exist?
-      @use_rtl = true
+    if yabm_module_exist?
+      @use_yabm = true
     end
     
     if @use_socket
@@ -71,7 +71,7 @@ class SimpleHttp
       end
       UV::run()
       @uri[:ip] = ip
-    elsif @use_rtl
+    elsif @use_yabm
       i = 0
       dot = 0
       while i < address.length do
@@ -88,8 +88,8 @@ class SimpleHttp
         @uri[:ip] = (num[0].to_i << 24) | (num[1].to_i << 16) | (num[2].to_i << 8) | num[3].to_i
       else
 # dns lookup
-        rtl = RTL8196C.new(RTL8196C::MODULE_GENERIC)
-        @uri[:ip] = rtl.lookup(address)
+        yabm = YABM.new(YABM::MODULE_GENERIC)
+        @uri[:ip] = yabm.lookup(address)
       end
     else
       raise "Not found Socket Class or UV Module"
@@ -199,13 +199,13 @@ class SimpleHttp
         end
       end
       UV::run()
-    elsif @use_rtl
+    elsif @use_yabm
       if @uri[:ip] != 0
-        rtl = RTL8196C.new(RTL8196C::MODULE_GENERIC)
+        yabm = YABM.new(YABM::MODULE_GENERIC)
         if @uri[:scheme] == "https"
-          response_text = rtl.https(@uri[:address], @uri[:ip], @uri[:port], request_header)
+          response_text = yabm.https(@uri[:address], @uri[:ip], @uri[:port], request_header)
         else
-          response_text = rtl.http(@uri[:ip], @uri[:port], request_header)
+          response_text = yabm.http(@uri[:ip], @uri[:port], request_header)
         end
        end
     else
