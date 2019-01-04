@@ -240,7 +240,7 @@ class SimpleHttp
       header.delete("Body")
     end
     if ["POST", "PUT"].include?(method) && (not header.keys.include?("content-length".capitalize))
-        header["Content-Length"] = (body || '').length
+        header["Content-Length"] = (body || '').length.to_s
     end
     header.keys.sort.each do |key|
 #      str << sprintf("%s: %s", key, header[key]) + SEP
