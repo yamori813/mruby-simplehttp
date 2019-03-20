@@ -84,8 +84,7 @@ class SimpleHttp
       end
 
       if i = address.length && dot == 3 then
-        num = address.split('.')
-        @uri[:ip] = (num[0].to_i << 24) | (num[1].to_i << 16) | (num[2].to_i << 8) | num[3].to_i
+        @uri[:ip] = address
       else
 # dns lookup
         yabm = YABM.new
@@ -200,7 +199,7 @@ class SimpleHttp
       end
       UV::run()
     elsif @use_yabm
-      if @uri[:ip] != 0
+      if @uri[:ip].length != 0
         yabm = YABM.new
         if @uri[:scheme] == "https"
           response_text = yabm.https(@uri[:address], @uri[:ip], @uri[:port], request_header)
