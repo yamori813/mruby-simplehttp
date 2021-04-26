@@ -34,7 +34,7 @@ class SimpleHttp
       return false
   end
 
-  def initialize(scheme, address, port = nil)
+  def initialize(scheme, address, port = nil, ipv6 = 0)
 
     @uri = {}
     if scheme == 'unix'
@@ -88,7 +88,11 @@ class SimpleHttp
       else
 # dns lookup
         yabm = YABM.new
-        @uri[:ip] = yabm.lookup(address)
+        if ipv6 == 1 then
+          @uri[:ip] = yabm.lookup6(address)
+        else
+          @uri[:ip] = yabm.lookup(address)
+        end
       end
     else
       raise "Not found Socket Class or UV Module"
